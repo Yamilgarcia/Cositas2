@@ -15,6 +15,7 @@ import ModalRegistroProducto from "../components/productos/ModalRegistroProducto
 import ModalEdicionProducto from "../components/productos/ModalEdicionProducto";
 import ModalEliminacionProducto from "../components/productos/ModalEliminacionProducto";
 
+
 const Productos = () => {
   // Estados para manejo de datos
   const [productos, setProductos] = useState([]);

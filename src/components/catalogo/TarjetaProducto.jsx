@@ -1,6 +1,6 @@
-import { Card, Col } from "react-bootstrap";
+import { Card, Col, Button } from "react-bootstrap";
 
-const TarjetaProducto = ({ producto }) => {
+const TarjetaProducto = ({ producto, openEditModal }) => {
   return (
     <Col lg={3} md={4} sm={12} className="mb-4">
       <Card className="h-100">
@@ -22,6 +22,15 @@ const TarjetaProducto = ({ producto }) => {
             Precio: C${producto.precio} <br />
             Categoría: {producto.categoria}
           </Card.Text>
+          
+          {/* Botón Editar */}
+          <Button
+            variant="outline-primary"
+            className="mt-auto"
+            onClick={() => openEditModal(producto)}
+          >
+            Editar
+          </Button>
         </Card.Body>
       </Card>
     </Col>
