@@ -6,7 +6,7 @@ const ModalEdicionLibro = ({
   setShowEditModal,
   libroEditado,
   handleEditInputChange,
-  handleArchivoEditChange,
+  handleEditPdfChange,
   handleEditLibro,
 }) => {
   if (!libroEditado) return null;
@@ -47,16 +47,15 @@ const ModalEdicionLibro = ({
             />
           </Form.Group>
           <Form.Group className="mb-3">
-            <Form.Label>Archivo actual</Form.Label>
-            
-            <Form.Control
-              type="file"
-              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.bmp"
-              onChange={handleArchivoEditChange}
-            />
-            <Form.Text className="text-muted">
-              Si seleccionás un nuevo archivo, se reemplazará el anterior.
-            </Form.Text>
+            <Form.Label>Documento PDF Actual</Form.Label>
+            {libroEditado.pdfUrl && (
+              <div>
+                <a href={libroEditado.pdfUrl} target="_blank" rel="noopener noreferrer">
+                  Ver PDF actual
+                </a>
+              </div>
+            )}
+            <Form.Control type="file" accept="application/pdf" onChange={handleEditPdfChange} />
           </Form.Group>
         </Form>
       </Modal.Body>

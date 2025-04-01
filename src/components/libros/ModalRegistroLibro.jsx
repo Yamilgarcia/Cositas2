@@ -6,7 +6,7 @@ const ModalRegistroLibro = ({
   setShowModal,
   nuevoLibro,
   handleInputChange,
-  handleArchivoChange,
+  handlePdfChange,
   handleAddLibro,
 }) => {
   return (
@@ -45,12 +45,8 @@ const ModalRegistroLibro = ({
             />
           </Form.Group>
           <Form.Group className="mb-3">
-            <Form.Label>Archivo del libro (PDF, Word, Imagen, etc.)</Form.Label>
-            <Form.Control
-              type="file"
-              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.bmp"
-              onChange={handleArchivoChange}
-            />
+            <Form.Label>Documento PDF</Form.Label>
+            <Form.Control type="file" accept="application/pdf" onChange={handlePdfChange} />
           </Form.Group>
         </Form>
       </Modal.Body>
