@@ -16,10 +16,9 @@ import TablaCategorias from "../components/categorias/TablaCategorias";
 import ModalRegistroCategoria from "../components/categorias/ModalRegistroCategoria";
 import ModalEdicionCategoria from "../components/categorias/ModalEdicionCategoria";
 import ModalEliminacionCategoria from "../components/categorias/ModalEliminacionCategoria";
-
+import CuadroBusqueda from "../components/busqueda/cuadrobusqueda";
 
 const Categorias = () => {
-
     // Estados para manejo de datos
     const [categorias, setCategorias] = useState([]);
     const [showModal, setShowModal] = useState(false);
@@ -31,6 +30,7 @@ const Categorias = () => {
     });
     const [categoriaEditada, setCategoriaEditada] = useState(null);
     const [categoriaAEliminar, setCategoriaAEliminar] = useState(null);
+    const [searchText, setSearchText] = useState("");
 
     // Referencia a la colección de categorías en Firestore
     const categoriasCollection = collection(db, "categorias");
@@ -130,6 +130,12 @@ const Categorias = () => {
         setShowDeleteModal(true);
     };
 
+    // Manejador de búsqueda por nombre
+    const handleSearchChange = (e) => {
+        const text = e.target.value.toLowerCase();
+        setSearchText(text);
+    };
+
     // Renderizado del componente
     return (
         <Container className="mt-5">
@@ -138,11 +144,25 @@ const Categorias = () => {
             <Button className="mb-3" onClick={() => setShowModal(true)}>
                 Agregar categoría
             </Button>
+
+            <CuadroBusqueda
+                searchText={searchText}
+                handleSearchChange={handleSearchChange}
+            />
+
             <TablaCategorias
-                categorias={categorias}
+                categorias={
+                    searchText
+                        ? categorias.filter((categoria) =>
+                            categoria.nombre.toLowerCase().includes(searchText) ||
+                            categoria.descripcion.toLowerCase().includes(searchText)
+                        )
+                        : categorias
+                }
                 openEditModal={openEditModal}
                 openDeleteModal={openDeleteModal}
             />
+
             <ModalRegistroCategoria
                 showModal={showModal}
                 setShowModal={setShowModal}
