@@ -16,7 +16,8 @@ import ModalRegistroLibro from "../components/libros/ModalRegistroLibro";
 import ModalEdicionLibro from "../components/libros/ModalEdicionLibro";
 import ModalEliminacionLibro from "../components/libros/ModalEliminacionLibro";
 import { useAuth } from "../database/authcontext";
-import CuadroBusqueda from "../components/busqueda/cuadrobusqueda"; // AÑADIDO
+import CuadroBusqueda from "../components/busqueda/cuadrobusqueda";
+import Paginacion from "../components/ordenamiento/Paginacion"; // ✅ Paginación
 
 const Libros = () => {
   const [libros, setLibros] = useState([]);
@@ -33,7 +34,10 @@ const Libros = () => {
   const [libroAEliminar, setLibroAEliminar] = useState(null);
   const [pdfFile, setPdfFile] = useState(null);
   const [error, setError] = useState(null);
-  const [searchText, setSearchText] = useState(""); // AÑADIDO
+  const [searchText, setSearchText] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1); // ✅ Paginación
+  const itemsPerPage = 5; // ✅ Paginación
 
   const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
@@ -200,6 +204,21 @@ const Libros = () => {
     setSearchText(e.target.value.toLowerCase());
   };
 
+  // ✅ Filtro + Paginación
+  const librosFiltrados = searchText
+    ? libros.filter(
+        (libro) =>
+          libro.nombre.toLowerCase().includes(searchText) ||
+          libro.autor.toLowerCase().includes(searchText) ||
+          libro.genero.toLowerCase().includes(searchText)
+      )
+    : libros;
+
+  const paginatedLibros = librosFiltrados.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
     <Container className="mt-5">
       <br />
@@ -210,24 +229,22 @@ const Libros = () => {
         Agregar libro
       </Button>
 
-      <CuadroBusqueda // AÑADIDO
+      <CuadroBusqueda
         searchText={searchText}
         handleSearchChange={handleSearchChange}
       />
 
       <TablaLibros
-        libros={
-          searchText
-            ? libros.filter(
-                (libro) =>
-                  libro.nombre.toLowerCase().includes(searchText) ||
-                  libro.autor.toLowerCase().includes(searchText) ||
-                  libro.genero.toLowerCase().includes(searchText)
-              )
-            : libros
-        }
+        libros={paginatedLibros}
         openEditModal={openEditModal}
         openDeleteModal={openDeleteModal}
+      />
+
+      <Paginacion
+        itemsPerPage={itemsPerPage}
+        totalItems={librosFiltrados.length}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
       />
 
       <ModalRegistroLibro

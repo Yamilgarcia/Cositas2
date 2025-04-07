@@ -14,7 +14,8 @@ import TablaProductos from "../components/productos/TablaProductos";
 import ModalRegistroProducto from "../components/productos/ModalRegistroProducto";
 import ModalEdicionProducto from "../components/productos/ModalEdicionProducto";
 import ModalEliminacionProducto from "../components/productos/ModalEliminacionProducto";
-import CuadroBusqueda from "../components/busqueda/cuadrobusqueda"; // AÑADIDO
+import CuadroBusqueda from "../components/busqueda/cuadrobusqueda";
+import Paginacion from "../components/ordenamiento/Paginacion"; // ✅ NUEVO
 
 const Productos = () => {
   // Estados para manejo de datos
@@ -23,7 +24,10 @@ const Productos = () => {
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [searchText, setSearchText] = useState(""); 
+  const [searchText, setSearchText] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1); // ✅ PAGINACIÓN
+  const itemsPerPage = 5; // ✅ ELEMENTOS POR PÁGINA
 
   const [nuevoProducto, setNuevoProducto] = useState({
     nombre: "",
@@ -152,6 +156,20 @@ const Productos = () => {
     setSearchText(e.target.value.toLowerCase());
   };
 
+  // ✅ Filtro + Paginación
+  const productosFiltrados = searchText
+    ? productos.filter(
+        (producto) =>
+          producto.nombre.toLowerCase().includes(searchText) ||
+          producto.categoria.toLowerCase().includes(searchText)
+      )
+    : productos;
+
+  const paginatedProductos = productosFiltrados.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
     <Container className="mt-5">
       <br />
@@ -161,23 +179,26 @@ const Productos = () => {
         Agregar producto
       </Button>
 
-      <CuadroBusqueda // ✅ AÑADIDO
+      <CuadroBusqueda
         searchText={searchText}
         handleSearchChange={handleSearchChange}
       />
 
       <TablaProductos
-        productos={
-          searchText
-            ? productos.filter(
-                (producto) =>
-                  producto.nombre.toLowerCase().includes(searchText) ||
-                  producto.categoria.toLowerCase().includes(searchText)
-              )
-            : productos
-        }
+        productos={paginatedProductos}
         openEditModal={openEditModal}
         openDeleteModal={openDeleteModal}
+        totalItems={productosFiltrados.length}
+        itemsPerPage={itemsPerPage}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+      />
+
+      <Paginacion
+        itemsPerPage={itemsPerPage}
+        totalItems={productosFiltrados.length}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
       />
 
       <ModalRegistroProducto
