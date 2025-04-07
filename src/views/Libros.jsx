@@ -16,7 +16,7 @@ import ModalRegistroLibro from "../components/libros/ModalRegistroLibro";
 import ModalEdicionLibro from "../components/libros/ModalEdicionLibro";
 import ModalEliminacionLibro from "../components/libros/ModalEliminacionLibro";
 import { useAuth } from "../database/authcontext";
-import CuadroBusqueda from "../Components/busqueda/cuadrobusqueda"; // AÑADIDO
+import CuadroBusqueda from "../components/busqueda/cuadrobusqueda"; // AÑADIDO
 
 const Libros = () => {
   const [libros, setLibros] = useState([]);

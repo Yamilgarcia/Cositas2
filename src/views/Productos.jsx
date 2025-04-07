@@ -14,7 +14,7 @@ import TablaProductos from "../components/productos/TablaProductos";
 import ModalRegistroProducto from "../components/productos/ModalRegistroProducto";
 import ModalEdicionProducto from "../components/productos/ModalEdicionProducto";
 import ModalEliminacionProducto from "../components/productos/ModalEliminacionProducto";
-import CuadroBusqueda from "../Components/busqueda/cuadrobusqueda"; // AÑADIDO
+import CuadroBusqueda from "../components/busqueda/cuadrobusqueda"; // AÑADIDO
 
 const Productos = () => {
   // Estados para manejo de datos
