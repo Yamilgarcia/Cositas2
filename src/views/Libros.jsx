@@ -16,6 +16,7 @@ import ModalRegistroLibro from "../components/libros/ModalRegistroLibro";
 import ModalEdicionLibro from "../components/libros/ModalEdicionLibro";
 import ModalEliminacionLibro from "../components/libros/ModalEliminacionLibro";
 import { useAuth } from "../database/authcontext";
+import CuadroBusqueda from "../Components/busqueda/cuadrobusqueda"; // AÑADIDO
 
 const Libros = () => {
   const [libros, setLibros] = useState([]);
@@ -32,6 +33,7 @@ const Libros = () => {
   const [libroAEliminar, setLibroAEliminar] = useState(null);
   const [pdfFile, setPdfFile] = useState(null);
   const [error, setError] = useState(null);
+  const [searchText, setSearchText] = useState(""); // AÑADIDO
 
   const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
@@ -99,6 +101,7 @@ const Libros = () => {
       alert("Por favor, completa todos los campos y selecciona un PDF.");
       return;
     }
+
     try {
       const storageRef = ref(storage, `libros/${pdfFile.name}`);
       await uploadBytes(storageRef, pdfFile);
@@ -126,8 +129,10 @@ const Libros = () => {
       alert("Por favor, completa todos los campos requeridos.");
       return;
     }
+
     try {
       const libroRef = doc(db, "libros", libroEditado.id);
+
       if (pdfFile) {
         if (libroEditado.pdfUrl) {
           const oldPdfRef = ref(storage, libroEditado.pdfUrl);
@@ -135,6 +140,7 @@ const Libros = () => {
             console.error("Error al eliminar el PDF anterior:", error);
           });
         }
+
         const storageRef = ref(storage, `libros/${pdfFile.name}`);
         await uploadBytes(storageRef, pdfFile);
         const newPdfUrl = await getDownloadURL(storageRef);
@@ -142,6 +148,7 @@ const Libros = () => {
       } else {
         await updateDoc(libroRef, libroEditado);
       }
+
       setShowEditModal(false);
       setPdfFile(null);
       await fetchData();
@@ -161,12 +168,14 @@ const Libros = () => {
     if (libroAEliminar) {
       try {
         const libroRef = doc(db, "libros", libroAEliminar.id);
+
         if (libroAEliminar.pdfUrl) {
           const pdfRef = ref(storage, libroAEliminar.pdfUrl);
           await deleteObject(pdfRef).catch((error) => {
             console.error("Error al eliminar el PDF de Storage:", error);
           });
         }
+
         await deleteDoc(libroRef);
         setShowDeleteModal(false);
         await fetchData();
@@ -187,19 +196,40 @@ const Libros = () => {
     setShowDeleteModal(true);
   };
 
+  const handleSearchChange = (e) => {
+    setSearchText(e.target.value.toLowerCase());
+  };
+
   return (
     <Container className="mt-5">
       <br />
       <h4>Gestión de Libros</h4>
       {error && <Alert variant="danger">{error}</Alert>}
+
       <Button className="mb-3" onClick={() => setShowModal(true)}>
         Agregar libro
       </Button>
+
+      <CuadroBusqueda // AÑADIDO
+        searchText={searchText}
+        handleSearchChange={handleSearchChange}
+      />
+
       <TablaLibros
-        libros={libros}
+        libros={
+          searchText
+            ? libros.filter(
+                (libro) =>
+                  libro.nombre.toLowerCase().includes(searchText) ||
+                  libro.autor.toLowerCase().includes(searchText) ||
+                  libro.genero.toLowerCase().includes(searchText)
+              )
+            : libros
+        }
         openEditModal={openEditModal}
         openDeleteModal={openDeleteModal}
       />
+
       <ModalRegistroLibro
         showModal={showModal}
         setShowModal={setShowModal}
