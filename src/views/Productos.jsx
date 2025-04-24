@@ -9,62 +9,69 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  onSnapshot,
 } from "firebase/firestore";
 import TablaProductos from "../components/productos/TablaProductos";
 import ModalRegistroProducto from "../components/productos/ModalRegistroProducto";
 import ModalEdicionProducto from "../components/productos/ModalEdicionProducto";
 import ModalEliminacionProducto from "../components/productos/ModalEliminacionProducto";
 import CuadroBusqueda from "../components/busqueda/cuadrobusqueda";
-import Paginacion from "../components/ordenamiento/Paginacion"; // ✅ NUEVO
+import Paginacion from "../components/ordenamiento/Paginacion";
 
+// Componente principal
 const Productos = () => {
-  // Estados para manejo de datos
   const [productos, setProductos] = useState([]);
+  const [productosFiltrados, setProductosFiltrados] = useState([]); // ✅ Se agregó este estado
   const [categorias, setCategorias] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [searchText, setSearchText] = useState("");
-
-  const [currentPage, setCurrentPage] = useState(1); // ✅ PAGINACIÓN
-  const itemsPerPage = 5; // ✅ ELEMENTOS POR PÁGINA
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
   const [nuevoProducto, setNuevoProducto] = useState({
     nombre: "",
     precio: "",
     categoria: "",
     imagen: ""
   });
-
   const [productoEditado, setProductoEditado] = useState(null);
   const [productoAEliminar, setProductoAEliminar] = useState(null);
 
-  // Referencias a Firestore
   const productosCollection = collection(db, "productos");
   const categoriasCollection = collection(db, "categorias");
 
-  const fetchData = async () => {
-    try {
-      const productosData = await getDocs(productosCollection);
-      const fetchedProductos = productosData.docs.map((doc) => ({
+  const isOffline = !navigator.onLine;
+
+  useEffect(() => {
+    const unsubscribeProductos = onSnapshot(productosCollection, (snapshot) => {
+      const fetchedProductos = snapshot.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id,
       }));
       setProductos(fetchedProductos);
+      setProductosFiltrados(fetchedProductos);
+      if (isOffline) {
+        console.log("Offline: Productos cargados desde caché local.");
+      }
+    }, (error) => {
+      console.error("Error al escuchar productos:", error);
+    });
 
-      const categoriasData = await getDocs(categoriasCollection);
-      const fetchedCategorias = categoriasData.docs.map((doc) => ({
+    const unsubscribeCategorias = onSnapshot(categoriasCollection, (snapshot) => {
+      const fetchedCategorias = snapshot.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id,
       }));
       setCategorias(fetchedCategorias);
-    } catch (error) {
-      console.error("Error al obtener datos:", error);
-    }
-  };
+    }, (error) => {
+      console.error("Error al escuchar categorías:", error);
+    });
 
-  useEffect(() => {
-    fetchData();
+    return () => {
+      unsubscribeProductos();
+      unsubscribeCategorias();
+    };
   }, []);
 
   const handleInputChange = (e) => {
@@ -100,45 +107,77 @@ const Productos = () => {
   };
 
   const handleAddProducto = async () => {
-    if (!nuevoProducto.nombre || !nuevoProducto.precio || !nuevoProducto.categoria) {
-      alert("Por favor, completa todos los campos requeridos.");
+    if (!nuevoProducto.nombre || !nuevoProducto.precio || !nuevoProducto.categoria || !nuevoProducto.imagen) {
+      alert("Por favor, completa todos los campos, incluyendo la imagen.");
       return;
     }
+
+    setShowModal(false);
+
+    const tempId = `temp_${Date.now()}`;
+    const productoConId = {
+      ...nuevoProducto,
+      id: tempId,
+      precio: parseFloat(nuevoProducto.precio),
+    };
+
     try {
-      await addDoc(productosCollection, nuevoProducto);
-      setShowModal(false);
+      setProductos((prev) => [...prev, productoConId]);
+      setProductosFiltrados((prev) => [...prev, productoConId]);
+
+      if (isOffline) {
+        alert("Sin conexión: Producto agregado localmente. Se sincronizará al reconectar.");
+      }
+
+      await addDoc(productosCollection, productoConId);
       setNuevoProducto({ nombre: "", precio: "", categoria: "", imagen: "" });
-      await fetchData();
     } catch (error) {
-      console.error("Error al agregar producto:", error);
+      console.error("Error al agregar el producto:", error);
+      setProductos((prev) => prev.filter((prod) => prod.id !== tempId));
+      setProductosFiltrados((prev) => prev.filter((prod) => prod.id !== tempId));
+      alert("Error al agregar el producto: " + error.message);
     }
   };
 
   const handleEditProducto = async () => {
-    if (!productoEditado.nombre || !productoEditado.precio || !productoEditado.categoria) {
-      alert("Por favor, completa todos los campos requeridos.");
+    if (!productoEditado.nombre || !productoEditado.precio || !productoEditado.categoria || !productoEditado.imagen) {
+      alert("Por favor, completa todos los campos.");
       return;
     }
+
+    setShowEditModal(false);
+    const productoRef = doc(db, "productos", productoEditado.id);
+
     try {
-      const productoRef = doc(db, "productos", productoEditado.id);
-      await updateDoc(productoRef, productoEditado);
-      setShowEditModal(false);
-      await fetchData();
+      const actualizado = {
+        ...productoEditado,
+        precio: parseFloat(productoEditado.precio),
+      };
+
+      setProductos((prev) => prev.map((prod) => (prod.id === actualizado.id ? actualizado : prod)));
+      setProductosFiltrados((prev) => prev.map((prod) => (prod.id === actualizado.id ? actualizado : prod)));
+
+      await updateDoc(productoRef, actualizado);
     } catch (error) {
-      console.error("Error al actualizar producto:", error);
+      console.error("Error al actualizar el producto:", error);
+      alert("Error al actualizar el producto: " + error.message);
     }
   };
 
   const handleDeleteProducto = async () => {
-    if (productoAEliminar) {
-      try {
-        const productoRef = doc(db, "productos", productoAEliminar.id);
-        await deleteDoc(productoRef);
-        setShowDeleteModal(false);
-        await fetchData();
-      } catch (error) {
-        console.error("Error al eliminar producto:", error);
-      }
+    if (!productoAEliminar) return;
+
+    setShowDeleteModal(false);
+
+    try {
+      setProductos((prev) => prev.filter((prod) => prod.id !== productoAEliminar.id));
+      setProductosFiltrados((prev) => prev.filter((prod) => prod.id !== productoAEliminar.id));
+
+      const productoRef = doc(db, "productos", productoAEliminar.id);
+      await deleteDoc(productoRef);
+    } catch (error) {
+      console.error("Error al eliminar el producto:", error);
+      alert("Error al eliminar el producto: " + error.message);
     }
   };
 
@@ -153,17 +192,16 @@ const Productos = () => {
   };
 
   const handleSearchChange = (e) => {
-    setSearchText(e.target.value.toLowerCase());
+    const texto = e.target.value.toLowerCase();
+    setSearchText(texto);
+    const filtrados = productos.filter(
+      (producto) =>
+        producto.nombre.toLowerCase().includes(texto) ||
+        producto.categoria.toLowerCase().includes(texto)
+    );
+    setProductosFiltrados(filtrados);
+    setCurrentPage(1);
   };
-
-  // ✅ Filtro + Paginación
-  const productosFiltrados = searchText
-    ? productos.filter(
-        (producto) =>
-          producto.nombre.toLowerCase().includes(searchText) ||
-          producto.categoria.toLowerCase().includes(searchText)
-      )
-    : productos;
 
   const paginatedProductos = productosFiltrados.slice(
     (currentPage - 1) * itemsPerPage,
@@ -172,17 +210,12 @@ const Productos = () => {
 
   return (
     <Container className="mt-5">
-      <br />
       <h4>Gestión de Productos</h4>
-
       <Button className="mb-3" onClick={() => setShowModal(true)}>
         Agregar producto
       </Button>
 
-      <CuadroBusqueda
-        searchText={searchText}
-        handleSearchChange={handleSearchChange}
-      />
+      <CuadroBusqueda searchText={searchText} handleSearchChange={handleSearchChange} />
 
       <TablaProductos
         productos={paginatedProductos}
@@ -210,6 +243,7 @@ const Productos = () => {
         handleAddProducto={handleAddProducto}
         categorias={categorias}
       />
+
       <ModalEdicionProducto
         showEditModal={showEditModal}
         setShowEditModal={setShowEditModal}
@@ -219,6 +253,7 @@ const Productos = () => {
         handleEditProducto={handleEditProducto}
         categorias={categorias}
       />
+
       <ModalEliminacionProducto
         showDeleteModal={showDeleteModal}
         setShowDeleteModal={setShowDeleteModal}
