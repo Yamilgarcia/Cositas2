@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Container } from "react-bootstrap";
-import PalabraCard from "../Components/pronunciacion/PalabraCard";
+import PalabraCard from "../components/pronunciacion/PalabraCard";
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
