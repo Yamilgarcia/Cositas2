@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "../database/firebaseConfig";
+import { db } from "../database/firebaseconfig";
 import GraficoProductos from "../components/estadisticas/GraficoProductos";
 import { Container } from "react-bootstrap";
 
