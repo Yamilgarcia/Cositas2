@@ -10,14 +10,20 @@ import {
   deleteDoc,
   doc,
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
 import TablaLibros from "../components/libros/TablaLibros";
 import ModalRegistroLibro from "../components/libros/ModalRegistroLibro";
 import ModalEdicionLibro from "../components/libros/ModalEdicionLibro";
 import ModalEliminacionLibro from "../components/libros/ModalEliminacionLibro";
+import ModalQR from "../components/qr/ModalQR";
 import { useAuth } from "../database/authcontext";
 import CuadroBusqueda from "../components/busqueda/cuadrobusqueda";
-import Paginacion from "../components/ordenamiento/Paginacion"; // ✅ Paginación
+import Paginacion from "../components/ordenamiento/Paginacion";
 
 const Libros = () => {
   const [libros, setLibros] = useState([]);
@@ -36,12 +42,14 @@ const Libros = () => {
   const [error, setError] = useState(null);
   const [searchText, setSearchText] = useState("");
 
-  const [currentPage, setCurrentPage] = useState(1); // ✅ Paginación
-  const itemsPerPage = 5; // ✅ Paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [selectedPdfUrl, setSelectedPdfUrl] = useState("");
 
   const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
-
   const librosCollection = collection(db, "libros");
 
   const fetchData = async () => {
@@ -200,11 +208,27 @@ const Libros = () => {
     setShowDeleteModal(true);
   };
 
+  const openQRModal = (url) => {
+    setSelectedPdfUrl(url);
+    setShowQRModal(true);
+  };
+
+  const closeQRModal = () => {
+    setSelectedPdfUrl("");
+    setShowQRModal(false);
+  };
+
+  const handleCopy = (libro) => {
+    const text = `Nombre: ${libro.nombre}\nAutor: ${libro.autor}\nGénero: ${libro.genero}\nPDF: ${libro.pdfUrl}`;
+    navigator.clipboard.writeText(text).then(() => {
+      alert("Datos copiados al portapapeles.");
+    });
+  };
+
   const handleSearchChange = (e) => {
     setSearchText(e.target.value.toLowerCase());
   };
 
-  // ✅ Filtro + Paginación
   const librosFiltrados = searchText
     ? libros.filter(
         (libro) =>
@@ -221,23 +245,19 @@ const Libros = () => {
 
   return (
     <Container className="mt-5">
-      <br />
       <h4>Gestión de Libros</h4>
       {error && <Alert variant="danger">{error}</Alert>}
 
-      <Button className="mb-3" onClick={() => setShowModal(true)}>
-        Agregar libro
-      </Button>
+      <Button className="mb-3" onClick={() => setShowModal(true)}>Agregar libro</Button>
 
-      <CuadroBusqueda
-        searchText={searchText}
-        handleSearchChange={handleSearchChange}
-      />
+      <CuadroBusqueda searchText={searchText} handleSearchChange={handleSearchChange} />
 
       <TablaLibros
         libros={paginatedLibros}
         openEditModal={openEditModal}
         openDeleteModal={openDeleteModal}
+        openQRModal={openQRModal}
+        handleCopy={handleCopy}
       />
 
       <Paginacion
@@ -255,6 +275,7 @@ const Libros = () => {
         handlePdfChange={handlePdfChange}
         handleAddLibro={handleAddLibro}
       />
+
       <ModalEdicionLibro
         showEditModal={showEditModal}
         setShowEditModal={setShowEditModal}
@@ -263,10 +284,17 @@ const Libros = () => {
         handleEditPdfChange={handleEditPdfChange}
         handleEditLibro={handleEditLibro}
       />
+
       <ModalEliminacionLibro
         showDeleteModal={showDeleteModal}
         setShowDeleteModal={setShowDeleteModal}
         handleDeleteLibro={handleDeleteLibro}
+      />
+
+      <ModalQR
+        show={showQRModal}
+        handleClose={closeQRModal}
+        pdfUrl={selectedPdfUrl}
       />
     </Container>
   );
