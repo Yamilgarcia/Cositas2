@@ -1,10 +1,9 @@
 // Importaciones
 import React, { useState, useEffect } from "react";
-import { Container, Button } from "react-bootstrap";
+import { Container, Button, Col } from "react-bootstrap";
 import { db } from "../database/firebaseconfig";
 import {
   collection,
-  getDocs,
   addDoc,
   updateDoc,
   deleteDoc,
@@ -19,6 +18,7 @@ import ModalEdicionCategoria from "../components/categorias/ModalEdicionCategori
 import ModalEliminacionCategoria from "../components/categorias/ModalEliminacionCategoria";
 import CuadroBusqueda from "../components/busqueda/cuadrobusqueda";
 import Paginacion from "../components/ordenamiento/Paginacion";
+import ChatIA from "../components/chat/ChatIA";
 
 const Categorias = () => {
   // Estados
@@ -35,6 +35,7 @@ const Categorias = () => {
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  const [showChatModal, setShowChatModal] = useState(false);
 
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
@@ -229,6 +230,16 @@ const Categorias = () => {
         Agregar categoría
       </Button>
 
+      <Col lg={3} md={4} sm={4} xs={5}>
+        <Button
+          className="mb-3"
+          onClick={() => setShowChatModal(true)}
+          style={{ width: "100%" }}
+        >
+          Chat IA
+        </Button>
+      </Col>
+
       <CuadroBusqueda
         searchText={searchText}
         handleSearchChange={handleSearchChange}
@@ -269,6 +280,14 @@ const Categorias = () => {
         showDeleteModal={showDeleteModal}
         setShowDeleteModal={setShowDeleteModal}
         handleDeleteCategoria={handleDeleteCategoria}
+      />
+
+      <ChatIA
+        showChatModal={showChatModal}
+        setShowChatModal={setShowChatModal}
+        onInsertCategoriaIA={(categoria) => {
+          console.log("Categoría creada con IA:", categoria);
+        }}
       />
     </Container>
   );
