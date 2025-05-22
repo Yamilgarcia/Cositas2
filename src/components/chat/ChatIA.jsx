@@ -47,156 +47,130 @@ const ChatIA = ({ showChatModal, setShowChatModal }) => {
     try {
       await addDoc(chatCollection, nuevoMensaje);
 
-      const lowerMensaje = mensaje.toLowerCase();
+      const { accion, nombre, descripcion, nuevoNombre, respuesta } = await obtenerRespuestaIA(mensaje);
 
-      // 1. Mostrar cantidad total
-      if (lowerMensaje.includes("cuántas") || lowerMensaje.includes("total")) {
+
+
+      if (accion === "contar") {
         const snap = await getDocs(categoriasCollection);
         await addDoc(chatCollection, {
-          texto: `Actualmente tienes ${snap.size} categorías registradas.`,
+          texto: `Tienes ${snap.size} categorías registradas.`,
           emisor: "IA",
           timestamp: new Date(),
         });
-      }
-      // 2. Buscar todas las categorías
-      else if (
-        lowerMensaje.includes("categorías hay") ||
-        lowerMensaje.includes("listar")
-      ) {
+
+      } else if (accion === "listar") {
         const snap = await getDocs(categoriasCollection);
         const lista = snap.docs.map((d) => `• ${d.data().nombre}`).join("\n");
         await addDoc(chatCollection, {
-          texto: `Estas son tus categorías:\n${lista}`,
+          texto: `Categorías registradas:\n${lista}`,
           emisor: "IA",
           timestamp: new Date(),
         });
-      }
-      // 3. Eliminar
-      else if (
-        lowerMensaje.includes("elimina") ||
-        lowerMensaje.includes("borrar")
-      ) {
-        const coincidencias = mensaje.match(/"([^"]+)"/);
-        if (coincidencias) {
-          const nombreABorrar = coincidencias[1].toLowerCase();
+
+      } else if (accion === "eliminar") {
+        if (!nombre) {
+          await addDoc(chatCollection, {
+            texto: "Debes proporcionar el nombre de la categoría a eliminar.",
+            emisor: "IA",
+            timestamp: new Date(),
+          });
+        } else {
           const snap = await getDocs(categoriasCollection);
           const docBorrar = snap.docs.find(
-            (d) => d.data().nombre.toLowerCase() === nombreABorrar
+            (d) => d.data().nombre.toLowerCase() === nombre.toLowerCase()
           );
           if (docBorrar) {
             await deleteDoc(doc(db, "categorias", docBorrar.id));
             await addDoc(chatCollection, {
-              texto: `Categoría "${nombreABorrar}" eliminada correctamente.`,
+              texto: `Categoría "${nombre}" eliminada exitosamente.`,
               emisor: "IA",
               timestamp: new Date(),
             });
           } else {
             await addDoc(chatCollection, {
-              texto: `No se encontró la categoría "${nombreABorrar}".`,
+              texto: `No se encontró la categoría "${nombre}".`,
               emisor: "IA",
               timestamp: new Date(),
             });
           }
-        } else {
+        }
+
+      } else if (accion === "editar") {
+        if (!nombre) {
           await addDoc(chatCollection, {
-            texto: 'Por favor, especifica el nombre entre comillas ("...").',
+            texto: "Debes proporcionar el nombre de la categoría a editar.",
             emisor: "IA",
             timestamp: new Date(),
           });
-        }
-      }
-      // 4. Editar descripción
-      else if (
-        lowerMensaje.includes("editar") &&
-        lowerMensaje.includes("descripción")
-      ) {
-        const coincidencias = mensaje.match(/"([^"]+)"/g);
-        if (coincidencias?.length >= 2) {
-          const nombreCat = coincidencias[0].replace(/"/g, "");
-          const nuevaDesc = coincidencias[1].replace(/"/g, "");
+        } else {
           const snap = await getDocs(categoriasCollection);
           const docEditar = snap.docs.find(
-            (d) => d.data().nombre.toLowerCase() === nombreCat.toLowerCase()
+            (d) => d.data().nombre.toLowerCase() === nombre.toLowerCase()
           );
           if (docEditar) {
-            await updateDoc(doc(db, "categorias", docEditar.id), {
-              descripcion: nuevaDesc,
-            });
-            await addDoc(chatCollection, {
-              texto: `Descripción de "${nombreCat}" actualizada con éxito.`,
-              emisor: "IA",
-              timestamp: new Date(),
-            });
+            const updates = {};
+            if (nuevoNombre) updates.nombre = nuevoNombre;
+
+
+            if (descripcion) updates.descripcion = descripcion;
+
+            if (Object.keys(updates).length === 0) {
+              await addDoc(chatCollection, {
+                texto: "No se proporcionó ningún dato nuevo para actualizar.",
+                emisor: "IA",
+                timestamp: new Date(),
+              });
+            } else {
+              await updateDoc(doc(db, "categorias", docEditar.id), updates);
+              await addDoc(chatCollection, {
+                texto: `Se actualizó la categoría "${nombre}". ${nuevoNombre ? `Nuevo nombre: "${nuevoNombre}". ` : ""
+                  }${descripcion ? `Nueva descripción: "${descripcion}".` : ""}`,
+
+                emisor: "IA",
+                timestamp: new Date(),
+              });
+            }
           } else {
             await addDoc(chatCollection, {
-              texto: `No se encontró la categoría "${nombreCat}".`,
+              texto: `No se encontró la categoría "${nombre}".`,
               emisor: "IA",
               timestamp: new Date(),
             });
           }
+        }
+
+
+      } else if (accion === "crear") {
+        if (!nombre || !descripcion) {
+          await addDoc(chatCollection, {
+            texto: "Faltan datos para crear la categoría.",
+            emisor: "IA",
+            timestamp: new Date(),
+          });
         } else {
+          await addDoc(categoriasCollection, {
+            nombre,
+            descripcion,
+            timestamp: new Date(),
+          });
           await addDoc(chatCollection, {
-            texto:
-              'Formato incorrecto. Usa: editar "nombre" con descripción "nueva descripción".',
+            texto: `Categoría "${nombre}" creada exitosamente.`,
             emisor: "IA",
             timestamp: new Date(),
           });
         }
-      }
-      // 5. Registro nuevo (por IA generativa)
-      // 5. Registro nuevo (por IA generativa)
-      else if (
-        lowerMensaje.includes("crear") ||
-        lowerMensaje.includes("añade") ||
-        lowerMensaje.includes("agrega") ||
-        lowerMensaje.includes("nueva categoría")
-      ) {
-        const respuestaIA = await obtenerRespuestaIA(mensaje);
-        await addDoc(chatCollection, {
-          texto: `Ok, vamos a registrar ${respuestaIA} en la base de datos.`,
-          emisor: "IA",
-          timestamp: new Date(),
-        });
 
-        try {
-          const datos = JSON.parse(respuestaIA);
-          if (datos.nombre && datos.descripcion) {
-            await addDoc(categoriasCollection, {
-              nombre: datos.nombre,
-              descripcion: datos.descripcion,
-              timestamp: new Date(),
-            });
-            await addDoc(chatCollection, {
-              texto: `Categoría ${datos.nombre} registrada con éxito.`,
-              emisor: "IA",
-              timestamp: new Date(),
-            });
-          } else {
-            await addDoc(chatCollection, {
-              texto:
-                "No se pudo registrar. El JSON no contenía los datos esperados.",
-              emisor: "IA",
-              timestamp: new Date(),
-            });
-          }
-        } catch {
-          await addDoc(chatCollection, {
-            texto: "La IA no devolvió un JSON válido.",
-            emisor: "IA",
-            timestamp: new Date(),
-          });
-        }
-      }
-
-      // 6. Mensajes generales
-      else {
+      } else {
         await addDoc(chatCollection, {
           texto:
-            'Hola, soy tu asistente de categorías. Puedes decirme cosas como:\n• Añade una categoría\n• ¿Cuántas categorías hay?\n• Elimina "nombre"\n• Edita "nombre" con descripción "..."',
+            respuesta ||
+            'Hola, puedes decirme cosas como: "crea una categoría", "elimina una", "cuántas hay", "edita la descripción de..."',
           emisor: "IA",
           timestamp: new Date(),
         });
       }
+
     } catch {
       await addDoc(chatCollection, {
         texto: "Ocurrió un error inesperado. Intenta de nuevo.",
@@ -210,7 +184,22 @@ const ChatIA = ({ showChatModal, setShowChatModal }) => {
 
   const obtenerRespuestaIA = async (promptUsuario) => {
     const apiKey = import.meta.env.VITE_GOOGLE_AI_API_KEY;
-    const prompt = `Extrae el nombre y la descripción de categoría en este mensaje: "${promptUsuario}". Si no hay descripción, genera una corta. Devuélvelo como {"nombre":"...","descripcion":"..."}`;
+    const prompt = `
+Eres un asistente que gestiona categorías de una base de datos. Tu tarea es analizar el siguiente mensaje del usuario y devolver una respuesta en formato JSON con la intención.
+
+Posibles acciones: "crear", "eliminar", "listar", "contar", "editar", "ayuda".
+
+Estructura del JSON de respuesta:
+{
+  "accion": "crear" | "eliminar" | "listar" | "contar" | "editar" | "ayuda",
+  "nombre": "nombre de la categoría (si aplica)",
+  "descripcion": "nueva descripción (si aplica)",
+  + "nuevoNombre": "nuevo nombre si desea cambiarlo",
+  "respuesta": "mensaje para mostrar al usuario"
+}
+
+Mensaje del usuario: "${promptUsuario}"
+`;
 
     try {
       const response = await fetch(
@@ -225,19 +214,37 @@ const ChatIA = ({ showChatModal, setShowChatModal }) => {
         }
       );
 
-      if (response.status === 429)
-        return "Demasiadas solicitudes. Intenta luego.";
-
       const data = await response.json();
-      return (
-        data.candidates?.[0]?.content?.parts?.[0]?.text ||
-        "No hubo respuesta de la IA."
-      );
+      return JSON.parse(data.candidates?.[0]?.content?.parts?.[0]?.text || "{}");
     } catch (error) {
-      console.error("Error al obtener respuesta de la IA:", error);
-      return "No se pudo conectar con la IA.";
+      console.error("Error al obtener respuesta IA:", error);
+      return { accion: "error", respuesta: "No se pudo conectar con la IA." };
     }
   };
+
+
+  const limpiarChat = async () => {
+    try {
+      const snap = await getDocs(chatCollection);
+      const eliminaciones = snap.docs.map((docu) =>
+        deleteDoc(doc(db, "chat", docu.id))
+      );
+      await Promise.all(eliminaciones);
+      await addDoc(chatCollection, {
+        texto: "🧹 Chat limpiado exitosamente.",
+        emisor: "IA",
+        timestamp: new Date(),
+      });
+    } catch (error) {
+      console.error("Error al limpiar el chat:", error);
+      await addDoc(chatCollection, {
+        texto: "Ocurrió un error al intentar limpiar el chat.",
+        emisor: "IA",
+        timestamp: new Date(),
+      });
+    }
+  };
+
 
   return (
     <Modal
@@ -253,11 +260,10 @@ const ChatIA = ({ showChatModal, setShowChatModal }) => {
           {mensajes.map((msg) => (
             <ListGroup.Item
               key={msg.id}
-              className={`d-flex flex-column ${
-                msg.emisor === "IA"
-                  ? "align-self-start bg-light text-dark"
-                  : "align-self-end bg-primary text-white"
-              }`}
+              className={`d-flex flex-column ${msg.emisor === "IA"
+                ? "align-self-start bg-light text-dark"
+                : "align-self-end bg-primary text-white"
+                }`}
               style={{
                 borderRadius: "10px",
                 marginBottom: "10px",
@@ -285,6 +291,9 @@ const ChatIA = ({ showChatModal, setShowChatModal }) => {
         />
       </Modal.Body>
       <Modal.Footer>
+        <Button variant="danger" onClick={limpiarChat}>
+          🧹 Limpiar Chat
+        </Button>
         <Button variant="secondary" onClick={() => setShowChatModal(false)}>
           Cerrar
         </Button>
@@ -292,6 +301,9 @@ const ChatIA = ({ showChatModal, setShowChatModal }) => {
           {cargando ? <Spinner size="sm" animation="border" /> : "Enviar"}
         </Button>
       </Modal.Footer>
+
+
+
     </Modal>
   );
 };
