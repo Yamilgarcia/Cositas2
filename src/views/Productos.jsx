@@ -17,6 +17,10 @@ import ModalEdicionProducto from "../components/productos/ModalEdicionProducto";
 import ModalEliminacionProducto from "../components/productos/ModalEliminacionProducto";
 import CuadroBusqueda from "../components/busqueda/cuadrobusqueda";
 import Paginacion from "../components/ordenamiento/Paginacion";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable"; // ← IMPORTACIÓN CORRECTA
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 // Componente principal
 const Productos = () => {
@@ -208,11 +212,143 @@ const Productos = () => {
     currentPage * itemsPerPage
   );
 
+
+
+
+  const generarPDFProductos = () => {
+    const doc = new jsPDF();
+
+    // Encabezado con fondo
+    doc.setFillColor(40, 53, 88); // Azul oscuro
+    doc.rect(0, 0, 210, 30, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.text("Reporte de Productos", 105, 20, { align: "center" });
+
+    // Encabezados de tabla
+    const encabezados = [["Nombre", "Precio", "Categoría"]];
+
+    // Filas de la tabla
+    const filas = paginatedProductos.map((prod) => [
+
+      prod.nombre,
+      `C$${parseFloat(prod.precio).toFixed(2)}`,
+
+      prod.categoria,
+    ]);
+
+   autoTable(doc, {
+
+      head: encabezados,
+      body: filas,
+      startY: 40,
+      theme: "grid",
+      headStyles: { fillColor: [40, 53, 88], textColor: 255 },
+      styles: { fontSize: 12 },
+    });
+
+    // Pie de página con fecha
+    const fecha = new Date().toLocaleDateString();
+    doc.setFontSize(10);
+    doc.text(`Fecha: ${fecha}`, 15, 285);
+
+    // Guardar
+    doc.save(`Productos_${fecha.replace(/\//g, "-")}.pdf`);
+  };
+
+
+
+
+
+  const generarPDFProductosConImagen = () => {
+  const doc = new jsPDF();
+  let y = 20;
+
+  doc.setFontSize(18);
+  doc.setTextColor(40, 53, 88);
+  doc.text("Reporte Detallado de Productos", 105, y, { align: "center" });
+  y += 10;
+
+  paginatedProductos.forEach((prod, index) => {
+    if (y > 260) {
+      doc.addPage();
+      y = 20;
+    }
+
+    // Imagen
+    if (prod.imagen) {
+      try {
+        doc.addImage(prod.imagen, "JPEG", 15, y, 30, 30); // x, y, width, height
+      } catch (e) {
+        console.warn("Error al agregar imagen del producto:", prod.nombre);
+      }
+    }
+
+    // Texto
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Nombre: ${prod.nombre}`, 50, y + 5);
+    doc.text(`Precio: C$${parseFloat(prod.precio).toFixed(2)}`, 50, y + 15);
+    doc.text(`Categoría: ${prod.categoria}`, 50, y + 25);
+
+    y += 40; // espacio entre productos
+  });
+
+  const fecha = new Date().toLocaleDateString();
+  doc.save(`Detalle_Productos_${fecha.replace(/\//g, "-")}.pdf`);
+};
+
+
+  const exportarExcelProductos = () => {
+  const fecha = new Date().toLocaleDateString().replace(/\//g, "-");
+  const nombreArchivo = `Productos_${fecha}.xlsx`;
+
+  // Usamos precio como número real
+  const datos = productos.map((prod) => ({
+    Nombre: prod.nombre,
+    Precio: parseFloat(prod.precio), // sin símbolo
+    Categoría: prod.categoria,
+  }));
+
+  const hoja = XLSX.utils.json_to_sheet(datos);
+  const libro = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(libro, hoja, "Productos");
+
+  // Ajustar ancho de columnas automáticamente (opcional)
+  const wscols = [{ wch: 20 }, { wch: 10 }, { wch: 25 }];
+  hoja["!cols"] = wscols;
+
+  const excelBuffer = XLSX.write(libro, {
+    bookType: "xlsx",
+    type: "array",
+  });
+
+  const archivo = new Blob([excelBuffer], {
+    type: "application/octet-stream",
+  });
+  saveAs(archivo, nombreArchivo);
+};
+
+
+
   return (
     <Container className="mt-5">
       <h4>Gestión de Productos</h4>
       <Button className="mb-3" onClick={() => setShowModal(true)}>
         Agregar producto
+      </Button>
+
+      <Button className="mb-3 ms-2 btn-success" onClick={generarPDFProductos}>
+        Generar PDF
+      </Button>
+
+
+<Button className="mb-3 ms-2 btn-warning" onClick={generarPDFProductosConImagen}>
+  PDF con Imagen
+</Button>
+
+      <Button className="mb-3 ms-2 btn-primary" onClick={exportarExcelProductos}>
+        Generar Excel
       </Button>
 
       <CuadroBusqueda searchText={searchText} handleSearchChange={handleSearchChange} />
