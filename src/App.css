@@ -10,3 +10,7 @@
 .margen-superior-main {
   margin-top: 60px;
 }
+
+#language-selector {
+  margin-left: auto;
+}

@@ -4,24 +4,23 @@ import { db } from "../database/firebaseconfig";
 import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
 import TarjetaProducto from "../components/catalogo/TarjetaProducto";
 import ModalEdicionProducto from "../components/productos/ModalEdicionProducto";
+import { useTranslation } from "react-i18next";
 
 const Catalogo = () => {
+  const { t } = useTranslation();
+
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("Todas");
 
-  // Estados para la edición de productos
   const [showEditModal, setShowEditModal] = useState(false);
   const [productoEditado, setProductoEditado] = useState(null);
 
-  // Referencias a colecciones de Firestore
   const productosCollection = collection(db, "productos");
   const categoriasCollection = collection(db, "categorias");
 
-  // Función para cargar datos
   const fetchData = async () => {
     try {
-      // Obtener productos
       const productosData = await getDocs(productosCollection);
       const fetchedProductos = productosData.docs.map((doc) => ({
         ...doc.data(),
@@ -29,7 +28,6 @@ const Catalogo = () => {
       }));
       setProductos(fetchedProductos);
 
-      // Obtener categorías
       const categoriasData = await getDocs(categoriasCollection);
       const fetchedCategorias = categoriasData.docs.map((doc) => ({
         ...doc.data(),
@@ -44,8 +42,6 @@ const Catalogo = () => {
   useEffect(() => {
     fetchData();
   }, []);
-
-  // ---------------- LÓGICA DE EDICIÓN ----------------
 
   const openEditModal = (producto) => {
     setProductoEditado({ ...producto });
@@ -74,7 +70,7 @@ const Catalogo = () => {
       !productoEditado.precio ||
       !productoEditado.categoria
     ) {
-      alert("Por favor, completa todos los campos requeridos.");
+      alert(t("alertas.camposObligatorios"));
       return;
     }
     try {
@@ -82,13 +78,11 @@ const Catalogo = () => {
       await updateDoc(productoRef, productoEditado);
       setShowEditModal(false);
       setProductoEditado(null);
-      fetchData(); // Recargar productos
+      fetchData();
     } catch (error) {
       console.error("Error al actualizar producto:", error);
     }
   };
-
-  // ---------------- FILTRADO ----------------
 
   const productosFiltrados =
     categoriaSeleccionada === "Todas"
@@ -100,29 +94,34 @@ const Catalogo = () => {
   return (
     <Container className="mt-5">
       <br />
-      <h4>Catálogo de Productos</h4>
+      <h4>{t("catalogo.titulo")}</h4>
 
-      {/* Filtro por categoría */}
       <Row>
         <Col lg={3} md={3} sm={6}>
           <Form.Group className="mb-3">
-            <Form.Label>Filtrar por categoría:</Form.Label>
+            <Form.Label>{t("catalogo.filtrar")}</Form.Label>
             <Form.Select
               value={categoriaSeleccionada}
               onChange={(e) => setCategoriaSeleccionada(e.target.value)}
             >
-              <option value="Todas">Todas</option>
-              {categorias.map((categoria) => (
-                <option key={categoria.id} value={categoria.nombre}>
-                  {categoria.nombre}
-                </option>
-              ))}
+              <option value="Todas">{t("catalogo.todas")}</option>
+              {categorias.map((categoria) => {
+                const nombreTraducido =
+                  t(`categorias.traducidas.${categoria.nombre}`) !==
+                  `categorias.traducidas.${categoria.nombre}`
+                    ? t(`categorias.traducidas.${categoria.nombre}`)
+                    : categoria.nombre;
+                return (
+                  <option key={categoria.id} value={categoria.nombre}>
+                    {nombreTraducido}
+                  </option>
+                );
+              })}
             </Form.Select>
           </Form.Group>
         </Col>
       </Row>
 
-      {/* Modal de edición */}
       <ModalEdicionProducto
         showEditModal={showEditModal}
         setShowEditModal={setShowEditModal}
@@ -133,18 +132,17 @@ const Catalogo = () => {
         categorias={categorias}
       />
 
-      {/* Tarjetas de productos */}
       <Row>
         {productosFiltrados.length > 0 ? (
           productosFiltrados.map((producto) => (
             <TarjetaProducto
               key={producto.id}
               producto={producto}
-              openEditModal={openEditModal} // 👈 le pasamos la función al hijo
+              openEditModal={openEditModal}
             />
           ))
         ) : (
-          <p>No hay productos en esta categoría.</p>
+          <p>{t("catalogo.sinProductos")}</p>
         )}
       </Row>
     </Container>

@@ -19,9 +19,11 @@ import ModalEliminacionCategoria from "../components/categorias/ModalEliminacion
 import CuadroBusqueda from "../components/busqueda/cuadrobusqueda";
 import Paginacion from "../components/ordenamiento/Paginacion";
 import ChatIA from "../components/chat/ChatIA";
-
+import { useTranslation } from "react-i18next";
 const Categorias = () => {
   // Estados
+  const { t } = useTranslation();
+
   const [categorias, setCategorias] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -226,9 +228,9 @@ const Categorias = () => {
       <br />
       <h4>Gestión de Categorías</h4>
 
-      <Button className="mb-3" onClick={() => setShowModal(true)}>
-        Agregar categoría
-      </Button>
+     <Button className="mb-3" onClick={() => setShowModal(true)}>
+  {t("categorias.agregar")}
+</Button>
 
       <Col lg={3} md={4} sm={4} xs={5}>
         <Button
