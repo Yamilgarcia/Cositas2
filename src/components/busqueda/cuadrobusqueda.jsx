@@ -2,8 +2,11 @@ import React from "react";
 import { FormControl, InputGroup } from "react-bootstrap";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import InputGroupText from "react-bootstrap/esm/InputGroupText";
+import { useTranslation } from "react-i18next";
 
 const CuadroBusqueda = ({ searchText, handleSearchChange }) => {
+    const { t } = useTranslation();
+
     return (
         <InputGroup className="mb-3" style={{ maxWidth: "400px" }}>
             <InputGroupText>
@@ -11,7 +14,7 @@ const CuadroBusqueda = ({ searchText, handleSearchChange }) => {
             </InputGroupText>
             <FormControl
                 type="text"
-                placeholder="Buscar"
+                placeholder={t("libros.buscar")}
                 value={searchText}
                 onChange={handleSearchChange}
             />

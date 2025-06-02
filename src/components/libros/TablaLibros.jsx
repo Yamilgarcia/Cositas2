@@ -1,17 +1,20 @@
 import React from "react";
 import { Table, Button } from "react-bootstrap";
+import { useTranslation } from "react-i18next";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
 const TablaLibros = ({ libros, openEditModal, openDeleteModal, openQRModal, handleCopy }) => {
+  const { t } = useTranslation();
+
   return (
     <Table striped bordered hover responsive>
       <thead>
         <tr>
-          <th>Nombre</th>
-          <th>Autor</th>
-          <th>Género</th>
-          <th>PDF</th>
-          <th>Acciones</th>
+          <th>{t("libros.titulo")}</th>
+          <th>{t("libros.autor")}</th>
+          <th>{t("libros.genero")}</th>
+          <th>{t("libros.pdf")}</th>
+          <th>{t("productos.acciones")}</th>
         </tr>
       </thead>
       <tbody>
@@ -23,7 +26,7 @@ const TablaLibros = ({ libros, openEditModal, openDeleteModal, openQRModal, hand
             <td>
               {libro.pdfUrl && (
                 <>
-                  <a href={libro.pdfUrl} target="_blank" rel="noopener noreferrer">Ver PDF</a>
+                  <a href={libro.pdfUrl} target="_blank" rel="noopener noreferrer">{t("libros.pdf")}</a>
                   <Button
                     variant="outline-info"
                     size="sm"

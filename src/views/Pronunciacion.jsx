@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Container } from "react-bootstrap";
 import PalabraCard from "../components/pronunciacion/PalabraCard";
+import { useTranslation } from "react-i18next";
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 const palabras = ["apple", "banana", "orange", "grape", "watermelon", "kiwi", "strawberry", "blueberry", "pineapple", "mango"];
 
 const Pronunciacion = () => {
+  const { t } = useTranslation();
   const [palabraActual, setPalabraActual] = useState("");
   const [resultado, setResultado] = useState(null);
   const [escuchando, setEscuchando] = useState(false);
@@ -19,10 +21,10 @@ const Pronunciacion = () => {
         .then(() => console.log("Permiso de micrófono concedido"))
         .catch((err) => {
           console.error("Permiso denegado:", err);
-          setError("No se pudo acceder al micrófono.");
+          setError(t("pronunciacion.error"));
         });
     } else {
-      setError("Este navegador no soporta acceso al micrófono.");
+      setError(t("pronunciacion.error"));
     }
   }, []);
 
@@ -35,7 +37,7 @@ const Pronunciacion = () => {
 
   const iniciarReconocimiento = () => {
     if (!SpeechRecognition) {
-      setError("Este navegador no soporta reconocimiento de voz.");
+      setError(t("pronunciacion.error"));
       return;
     }
 
@@ -57,7 +59,7 @@ const Pronunciacion = () => {
     };
 
     recognition.onerror = (event) => {
-      setError("Error de reconocimiento: " + event.error);
+      setError(t("pronunciacion.error") + ": " + event.error);
       setEscuchando(false);
     };
 
@@ -66,7 +68,7 @@ const Pronunciacion = () => {
 
   return (
     <Container className="mt-5">
-      <h2 className="text-center">Ejercicio de Pronunciación</h2>
+      <h2 className="text-center">{t("pronunciacion.titulo")}</h2>
       <PalabraCard
         palabra={palabraActual}
         escuchando={escuchando}

@@ -24,8 +24,10 @@ import ModalQR from "../components/qr/ModalQR";
 import { useAuth } from "../database/authcontext";
 import CuadroBusqueda from "../components/busqueda/cuadrobusqueda";
 import Paginacion from "../components/ordenamiento/Paginacion";
+import { useTranslation } from "react-i18next";
 
 const Libros = () => {
+  const { t } = useTranslation();
   const [libros, setLibros] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -62,7 +64,7 @@ const Libros = () => {
       setLibros(fetchedLibros);
     } catch (error) {
       console.error("Error al obtener datos:", error);
-      setError("Error al cargar los datos. Intenta de nuevo.");
+      setError(t("libros.errorCargar"));
     }
   };
 
@@ -89,7 +91,7 @@ const Libros = () => {
     if (file && file.type === "application/pdf") {
       setPdfFile(file);
     } else {
-      alert("Por favor, selecciona un archivo PDF.");
+      alert(t("libros.alertaPDF"));
     }
   };
 
@@ -98,19 +100,19 @@ const Libros = () => {
     if (file && file.type === "application/pdf") {
       setPdfFile(file);
     } else {
-      alert("Por favor, selecciona un archivo PDF.");
+      alert(t("libros.alertaPDF"));
     }
   };
 
   const handleAddLibro = async () => {
     if (!isLoggedIn) {
-      alert("Debes iniciar sesión para agregar un libro.");
+      alert(t("libros.alertaLogin"));
       navigate("/login");
       return;
     }
 
     if (!nuevoLibro.nombre || !nuevoLibro.autor || !nuevoLibro.genero || !pdfFile) {
-      alert("Por favor, completa todos los campos y selecciona un PDF.");
+      alert(t("libros.alertaCampos"));
       return;
     }
 
@@ -126,19 +128,19 @@ const Libros = () => {
       await fetchData();
     } catch (error) {
       console.error("Error al agregar libro:", error);
-      setError("Error al agregar el libro. Intenta de nuevo.");
+      setError(t("libros.errorAgregar"));
     }
   };
 
   const handleEditLibro = async () => {
     if (!isLoggedIn) {
-      alert("Debes iniciar sesión para editar un libro.");
+      alert(t("libros.alertaLogin"));
       navigate("/login");
       return;
     }
 
     if (!libroEditado.nombre || !libroEditado.autor || !libroEditado.genero) {
-      alert("Por favor, completa todos los campos requeridos.");
+      alert(t("libros.alertaCampos"));
       return;
     }
 
@@ -166,13 +168,13 @@ const Libros = () => {
       await fetchData();
     } catch (error) {
       console.error("Error al actualizar libro:", error);
-      setError("Error al actualizar el libro. Intenta de nuevo.");
+      setError(t("libros.errorActualizar"));
     }
   };
 
   const handleDeleteLibro = async () => {
     if (!isLoggedIn) {
-      alert("Debes iniciar sesión para eliminar un libro.");
+      alert(t("libros.alertaLogin"));
       navigate("/login");
       return;
     }
@@ -193,7 +195,7 @@ const Libros = () => {
         await fetchData();
       } catch (error) {
         console.error("Error al eliminar libro:", error);
-        setError("Error al eliminar el libro. Intenta de nuevo.");
+        setError(t("libros.errorEliminar"));
       }
     }
   };
@@ -219,9 +221,9 @@ const Libros = () => {
   };
 
   const handleCopy = (libro) => {
-    const text = `Nombre: ${libro.nombre}\nAutor: ${libro.autor}\nGénero: ${libro.genero}\nPDF: ${libro.pdfUrl}`;
+    const text = `${t("libros.nombre")}: ${libro.nombre}\n${t("libros.autor")}: ${libro.autor}\n${t("libros.genero")}: ${libro.genero}\nPDF: ${libro.pdfUrl}`;
     navigator.clipboard.writeText(text).then(() => {
-      alert("Datos copiados al portapapeles.");
+      alert(t("libros.alertaCopiado"));
     });
   };
 
@@ -245,10 +247,10 @@ const Libros = () => {
 
   return (
     <Container className="mt-5">
-      <h4>Gestión de Libros</h4>
+      <h4>{t("libros.titulo")}</h4>
       {error && <Alert variant="danger">{error}</Alert>}
 
-      <Button className="mb-3" onClick={() => setShowModal(true)}>Agregar libro</Button>
+      <Button className="mb-3" onClick={() => setShowModal(true)}>{t("libros.agregar")}</Button>
 
       <CuadroBusqueda searchText={searchText} handleSearchChange={handleSearchChange} />
 

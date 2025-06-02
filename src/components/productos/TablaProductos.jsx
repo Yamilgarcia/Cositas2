@@ -1,17 +1,20 @@
 import React from "react";
 import { Table, Button, Image } from "react-bootstrap";
+import { useTranslation } from "react-i18next";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
 const TablaProductos = ({ productos, openEditModal, openDeleteModal }) => {
+  const { t } = useTranslation();
+
   return (
     <Table striped bordered hover responsive>
       <thead>
         <tr>
-          <th>Imagen</th>
-          <th>Nombre</th>
-          <th>Precio</th>
-          <th>Categoría</th>
-          <th>Acciones</th>
+          <th>{t("productos.imagen")}</th>
+          <th>{t("productos.nombre")}</th>
+          <th>{t("productos.precio")}</th>
+          <th>{t("productos.categoria")}</th>
+          <th>{t("productos.acciones")}</th>
         </tr>
       </thead>
       <tbody>
@@ -23,7 +26,7 @@ const TablaProductos = ({ productos, openEditModal, openDeleteModal }) => {
               )}
             </td>
             <td>{producto.nombre}</td>
-            <td>C${producto.precio}</td>
+            <td>C${parseFloat(producto.precio).toFixed(2)}</td>
             <td>{producto.categoria}</td>
             <td>
               <Button

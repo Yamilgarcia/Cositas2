@@ -1,5 +1,6 @@
 import React from "react";
 import { Form, Button, Row, Col } from "react-bootstrap";
+import { useTranslation } from "react-i18next";
 
 const FormularioUbicacion = ({
   ubicacionManual,
@@ -8,14 +9,16 @@ const FormularioUbicacion = ({
   manejarCambioModo,
   manejarObtenerClima,
 }) => {
+  const { t } = useTranslation();
+
   return (
-    <Form onSubmit={manejarObtenerClima} >
-      <h5>Seleccionar Ubicación</h5>
+    <Form onSubmit={manejarObtenerClima}>
+      <h5>{t("clima.ubicacion")}</h5>
       <Row className="mb-3">
         <Col xs={12} sm={12} md={3} lg={3}>
           <Form.Check
             type="radio"
-            label="Ubicación Automática"
+            label={t("clima.automatica")}
             name="modoUbicacion"
             value="automatica"
             checked={modoUbicacion === "automatica"}
@@ -23,7 +26,7 @@ const FormularioUbicacion = ({
           />
           <Form.Check
             type="radio"
-            label="Ubicación Manual"
+            label={t("clima.manual")}
             name="modoUbicacion"
             value="manual"
             checked={modoUbicacion === "manual"}
@@ -32,7 +35,7 @@ const FormularioUbicacion = ({
         </Col>
         <Col xs={12} sm={12} md={4} lg={4}>
           <Form.Group controlId="latitud">
-            <Form.Label>Latitud</Form.Label>
+            <Form.Label>{t("clima.latitud")}</Form.Label>
             <Form.Control
               type="text"
               name="latitud"
@@ -45,7 +48,7 @@ const FormularioUbicacion = ({
         </Col>
         <Col xs={12} sm={12} md={4} lg={4} className="mb-3">
           <Form.Group controlId="longitud">
-            <Form.Label>Longitud</Form.Label>
+            <Form.Label>{t("clima.longitud")}</Form.Label>
             <Form.Control
               type="text"
               name="longitud"
@@ -58,7 +61,7 @@ const FormularioUbicacion = ({
         </Col>
         <Col xs={12} sm={12} md={1} lg={1} className="d-flex align-items-end justify-content-center mb-3">
           <Button variant="primary" type="submit">
-            Cargar
+            {t("clima.cargar")}
           </Button>
         </Col>
       </Row>

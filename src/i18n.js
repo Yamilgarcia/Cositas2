@@ -40,7 +40,7 @@ i18n
             cancelar: "Cancelar",
             seleccionarCategoria: "Seleccione una categoría",
             actual: "Imagen Actual",
-             guardar: "Guardar" 
+            guardar: "Guardar"
           },
           categorias: {
             titulo: "Gestión de Categorías",
@@ -65,6 +65,7 @@ i18n
             camposObligatorios: "Por favor, completa todos los campos requeridos."
           },
           libros: {
+            buscar: "Buscar",
             titulo: "Gestión de Libros",
             agregar: "Agregar libro",
             autor: "Autor",
@@ -77,6 +78,11 @@ i18n
             automatica: "Ubicación Automática",
             manual: "Ubicación Manual",
             cargar: "Cargar",
+            latitud: "Latitud",
+            longitud: "Longitud",
+            hora: "Hora",
+            temperatura: "Temperatura (°C)",
+  cargando: "Cargando datos del clima..." ,
             error: "Por favor, ingresa o detecta una ubicación válida."
           },
           pronunciacion: {
@@ -124,7 +130,7 @@ i18n
             cancelar: "Cancel",
             seleccionarCategoria: "Select a category",
             actual: "Current Image",
-              guardar: "Save"  // ✅ AÑADIR ESTO
+            guardar: "Save"  // ✅ AÑADIR ESTO
           },
           categorias: {
             titulo: "Category Management",
@@ -149,6 +155,7 @@ i18n
             camposObligatorios: "Please complete all required fields."
           },
           libros: {
+            buscar: "search",
             titulo: "Book Management",
             agregar: "Add book",
             autor: "Author",
@@ -161,6 +168,11 @@ i18n
             automatica: "Automatic Location",
             manual: "Manual Location",
             cargar: "Load",
+            latitud: "Latitude",
+            longitud: "Longitude",
+            hora: "Hour",
+            temperatura: "Temperature (°C)",
+              cargando: "Loading weather data...",
             error: "Please enter or detect a valid location."
           },
           pronunciacion: {

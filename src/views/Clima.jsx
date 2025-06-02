@@ -2,8 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import FormularioUbicacion from "../components/clima/FormularioUbicacion";
 import TablaClima from "../components/Api/TablaClima";
+import { useTranslation } from "react-i18next";
 
 const Clima = () => {
+  const { t } = useTranslation();
+
   const [ubicacion, setUbicacion] = useState({
     latitud: null,
     longitud: null,
@@ -27,11 +30,7 @@ const Clima = () => {
         (posicion) => {
           const latitud = posicion.coords.latitude;
           const longitud = posicion.coords.longitude;
-          setUbicacion({
-            latitud,
-            longitud,
-            error: null,
-          });
+          setUbicacion({ latitud, longitud, error: null });
           setUbicacionManual({
             latitud: latitud.toString(),
             longitud: longitud.toString(),
@@ -40,18 +39,18 @@ const Clima = () => {
         (error) => {
           setUbicacion((prev) => ({
             ...prev,
-            error: `Error al obtener la ubicación: ${error.message}`,
+            error: `${t("clima.error")}: ${error.message}`,
           }));
         }
       );
     } else {
-      alert("La geolocalización no es compatible con este navegador.");
+      alert(t("clima.error"));
       setUbicacion((prev) => ({
         ...prev,
-        error: "La geolocalización no es compatible con este navegador.",
+        error: t("clima.error"),
       }));
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!ubicacion.latitud || !ubicacion.longitud) return;
@@ -87,10 +86,7 @@ const Clima = () => {
 
   const manejarCambioInput = (e) => {
     const { name, value } = e.target;
-    setUbicacionManual((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setUbicacionManual((prev) => ({ ...prev, [name]: value }));
   };
 
   const manejarCambioModo = (e) => {
@@ -116,7 +112,7 @@ const Clima = () => {
             setUbicacion({
               latitud: null,
               longitud: null,
-              error: `Error al detectar la ubicación: ${error.message}`,
+              error: `${t("clima.error")}: ${error.message}`,
             });
           }
         );
@@ -124,7 +120,7 @@ const Clima = () => {
         setUbicacion({
           latitud: null,
           longitud: null,
-          error: "La geolocalización no es compatible con este navegador.",
+          error: t("clima.error"),
         });
       }
     } else {
@@ -135,7 +131,7 @@ const Clima = () => {
         setUbicacion({
           latitud: null,
           longitud: null,
-          error: "Por favor, ingresa valores válidos para latitud y longitud.",
+          error: t("clima.error"),
         });
         return;
       }
@@ -147,7 +143,7 @@ const Clima = () => {
   return (
     <Container className="mt-5">
       <br />
-      <h4>Clima por Hora</h4>
+      <h4>{t("clima.titulo")}</h4>
       <br />
       <FormularioUbicacion
         ubicacionManual={ubicacionManual}
@@ -160,13 +156,13 @@ const Clima = () => {
       <Row className="mt-4">
         <Col>
           {cargando ? (
-            <p>Cargando datos del clima...</p>
+            <p>{t("clima.cargando") || "Cargando datos del clima..."}</p>
           ) : errorClima ? (
             <p>{errorClima}</p>
           ) : datosPorHora.length > 0 ? (
             <TablaClima datosPorHora={datosPorHora} />
           ) : (
-            <p>Por favor, ingresa o detecta una ubicación válida.</p>
+            <p>{t("clima.error")}</p>
           )}
         </Col>
       </Row>

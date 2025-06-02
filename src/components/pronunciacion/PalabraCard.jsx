@@ -1,5 +1,6 @@
 import React from "react";
 import { Button, Alert } from "react-bootstrap";
+import { useTranslation } from "react-i18next";
 
 const PalabraCard = ({
   palabra,
@@ -9,9 +10,11 @@ const PalabraCard = ({
   onHablar,
   onNueva
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="text-center">
-      <h4 className="mt-4">Pronuncia esta palabra:</h4>
+      <h4 className="mt-4">{t("pronunciacion.instruccion")}</h4>
       <h1 className="display-4">{palabra}</h1>
 
       <Button
@@ -20,7 +23,7 @@ const PalabraCard = ({
         disabled={escuchando}
         className="mt-3"
       >
-        {escuchando ? "Escuchando..." : "Hablar"}
+        {escuchando ? t("pronunciacion.escuchando") : t("pronunciacion.hablar")}
       </Button>
 
       <Button
@@ -28,7 +31,7 @@ const PalabraCard = ({
         onClick={onNueva}
         className="ms-2 mt-3"
       >
-        Nueva Palabra
+        {t("pronunciacion.nueva")}
       </Button>
 
       {resultado && (
@@ -37,8 +40,8 @@ const PalabraCard = ({
           className="mt-4"
         >
           {resultado.correcto
-            ? `¡Correcto! Dijiste "${resultado.texto}"`
-            : `Incorrecto. Dijiste "${resultado.texto}", pero la palabra era "${palabra}"`}
+            ? `${t("pronunciacion.correcto")} "${resultado.texto}"`
+            : `${t("pronunciacion.incorrecto")} "${resultado.texto}", ${t("pronunciacion.esperado")} "${palabra}"`}
         </Alert>
       )}
 
